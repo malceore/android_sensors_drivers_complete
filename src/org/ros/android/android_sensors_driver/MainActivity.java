@@ -23,6 +23,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.hardware.Camera;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
+import org.ros.android.view.camera.RosCameraPreviewView;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,7 +58,8 @@ public class MainActivity extends RosActivity
     private FluidPressurePublisher fluid_pressure_pub;
     private IlluminancePublisher illuminance_pub;
     private TemperaturePublisher temperature_pub;
-
+    private int cameraId;
+    private RosCameraPreviewView rosCameraPreviewView;
     private LocationManager mLocationManager;
     private SensorManager mSensorManager;
 
@@ -80,6 +83,8 @@ public class MainActivity extends RosActivity
 
         mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
         mSensorManager = (SensorManager)this.getSystemService(SENSOR_SERVICE);
+
+        rosCameraPreviewView = (RosCameraPreviewView) findViewById(R.id.ros_camera_preview_view);
     }
 
     @Override
@@ -156,6 +161,15 @@ public class MainActivity extends RosActivity
             nodeConfiguration6.setNodeName("android_sensors_driver_temperature");
             this.temperature_pub = new TemperaturePublisher(mSensorManager, sensorDelay, tempSensor);
             nodeMainExecutor.execute(this.temperature_pub, nodeConfiguration6);
+        }
+
+        // Custom trying to add Camera Value.
+        if(currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD){
+            NodeConfiguration nodeConfiguration7 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+            nodeConfiguration7.setMasterUri(masterURI);
+            nodeConfiguration7.setNodeName("android_sensors_driver_camera");
+            //this.temperature_pub = new TemperaturePublisher(mSensorManager, sensorDelay, tempSensor);
+            nodeMainExecutor.execute(rosCameraPreviewView, nodeConfiguration7);
         }
     }
 
